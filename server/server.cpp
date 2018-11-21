@@ -16,6 +16,7 @@
 using namespace std;
 
 vector<char*> allFile;
+    
     int server_sockfd, client_sockfd, nbytes, bufferSize = 1024;
     int server_len;
     struct sockaddr_in server_address;
@@ -108,6 +109,7 @@ void addFile(vector<char*> list){
     int size = list.size();
     while(i < size){
         if(!checkFile(allFile, list[i]))    allFile.push_back(list[i]);
+        i++;
     }
 }
 int main(){
@@ -127,27 +129,20 @@ int main(){
         p.setPort(ntohs(client_address.sin_port));
         p.setState(true);
         peer.push_back(p);
-
-        while(1){
-                cout<<"..........";
-                cout<<"Server waiting...\n";
-                cout<<"..........";
-                char buffer[bufferSize];
-                char listFile[bufferSize];
-                vector<char*> list;
-                if((nbytes = read(client_sockfd, listFile,sizeof(listFile))) <= 0){
-                    break;
-                }
-                list = split(listFile);
-                p.setListFile(list);
-                addFile(list);
-                int i=0;
-                int size = allFile.size();
-                while(i < size){
-                    cout<<allFile[i]<<"\t";
-                }
+        char buffer[bufferSize];
+        char listFile[bufferSize];
+        while((nbytes = read(client_sockfd, listFile, sizeof(listFile))) > 0){
+            vector<char*> list;
+            list = split(listFile);
+            p.setListFile(list);
+            addFile(list);
+            int i=0;
+            int size = allFile.size();
+            while(i < size){
+                cout<<allFile[i]<<endl;
+                i++;
+            }
         }
-        close(client_sockfd);
     }
 }
 
