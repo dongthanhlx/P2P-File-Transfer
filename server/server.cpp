@@ -16,7 +16,7 @@
 using namespace std;
 
 vector<char*> allFile;
-    
+    pthread_mutex_t counter_mutex = PTHREAD_MUTEX_INITIALIZER;
     int server_sockfd, client_sockfd, nbytes, bufferSize = 1024;
     int server_len;
     struct sockaddr_in server_address;
@@ -76,10 +76,15 @@ vector<Peer> peer;
 bool checkFile(vector<char*> listFile, char *nameFile){
     int i=0;
     int size = listFile.size();
+    cout<<"Check "<<size<<endl;
     while(i<size){
-        if(strcmp(nameFile, listFile[i]) == 0)  return true;
+        if(strcmp(listFile[i], nameFile) == 0)  return true;
         i++;
     }
+    // do {
+    //     if(strcmp(listFile[i], nameFile) == 0)  return true;
+    //     i++;
+    // }while(i<size);
     return false;
 }
 void init(){
@@ -107,11 +112,17 @@ void init(){
 void addFile(vector<char*> list){
     int i=0;
     int size = list.size();
+    cout<<"counter: "<<size<<endl;
     while(i < size){
-        if(!checkFile(allFile, list[i]))    allFile.push_back(list[i]);
+        if(checkFile(allFile, list[i]) == 0)    allFile.push_back(list[i]);
+        // allFile.push_back(list[i]);
         i++;
     }
 }
+
+void *connection_handler(void *);
+
+int counter = 0;
 int main(){
 
     init();
@@ -123,26 +134,58 @@ int main(){
             perror("Accept Error");
             exit(1);
         }
+        
 
+        pthread_t thread_id;
+        if(pthread_create(&thread_id, NULL, connection_handler, (void *)&client_sockfd) < 0){
+            perror("Counld not create thread");
+            return 1;
+        }
+        // cout<<2<<endl;
+        pthread_join(thread_id, NULL);
+        // cout<<3<<endl;
+        if(counter == 3)    break;
+    }
+    // cout<<1<<endl;
+    int size = allFile.size();
+    cout<<"dong thanh "<<size<<endl;
+    for(int i=0; i<size; i++){
+        cout<<allFile[i]<<endl;
+    }
+    close(client_sockfd);
+    return 0;
+}
+
+
+void *connection_handler(void *server_sockfd){
+    int sock = *(int *)server_sockfd;
+    // char quit[] = "QUIT";
+    int nbytes;
+    pthread_detach(pthread_self());
+    char buffer[bufferSize];
+    char listFile[bufferSize];
+    bzero(listFile, sizeof(listFile));
         Peer p ;
         p.setIP(inet_ntoa(client_address.sin_addr));
         p.setPort(ntohs(client_address.sin_port));
         p.setState(true);
-        peer.push_back(p);
-        char buffer[bufferSize];
-        char listFile[bufferSize];
-        while((nbytes = read(client_sockfd, listFile, sizeof(listFile))) > 0){
+        // while() > 0){
+            read(client_sockfd, listFile, sizeof(listFile));
             vector<char*> list;
             list = split(listFile);
             p.setListFile(list);
+            peer.push_back(p);
             addFile(list);
             int i=0;
-            int size = allFile.size();
+            int size = list.size();
             while(i < size){
-                cout<<allFile[i]<<endl;
+                cout<<list[i]<<endl;
                 i++;
             }
-        }
-    }
+        pthread_mutex_lock(&counter_mutex);
+        counter++;
+        pthread_mutex_unlock(&counter_mutex);
+        pthread_mutex_destroy(&counter_mutex);
+        close(sock);
+        return NULL;
 }
-
