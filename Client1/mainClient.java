@@ -1,4 +1,4 @@
-package Client;
+package Client1;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,7 +22,6 @@ public class mainClient {
 		Socket socketOfClient = null;
 		BufferedWriter os = null;
 		BufferedReader is = null;
-		FileList fileList;
 		
 		Scanner scanner = new Scanner(System.in);
 //		System.out.println("Enter IP address: ");
@@ -44,7 +43,7 @@ public class mainClient {
 			return ;
 		}
 		
-		fileList = new FileList();
+		FileList fileList = new FileList();
 		fileList.setFileList();
 		String list = fileList.getFileList().concat("\0");
 //		int numFile = fileList.getNumFile();
@@ -52,7 +51,7 @@ public class mainClient {
 		try  {
 			System.out.println("Length: "+list.length());
 			os.write(list);
-			os.newLine();
+//			os.newLine();
 			os.flush();
 		}	catch(UnknownHostException e) {
 			e.printStackTrace();
