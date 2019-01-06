@@ -11,23 +11,21 @@ public class Menu {
 	}
 	
 	public void select() {
+		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		do {
 			System.out.print("Enter select: ");
-//			input = scanner.nextInt();
 			input = Integer.parseInt(scanner.nextLine());
-		}while(input<0 && input > 3);
-//		return input;
-		scanner.close();
+		}while(input<1 || input > 3);
 	}
 	public String getSelectTypeString() {
 		String result = null;
 		switch(input) {
-		case 1: result = "mot\0";
+		case 1: result = "request-file-list\0";
 			break;
-		case 2: result = "hai\0";
+		case 2: result = "download\0";
 			break;
-		case 3: result = "ba\0";
+		case 3: result = "disconnect\0";
 			break;
 		}
 		return result;

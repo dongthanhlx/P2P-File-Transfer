@@ -14,25 +14,27 @@ import Client3.FileList;
 
 public class MainClient {
 
-	private final static String serverHost = "127.0.0.1";
+	private static String serverHost ;
 	private static int port ;
 	private static int bufferSize = 1024;
 	private static Socket socketOfClient = null;
 	private static BufferedWriter os = null;
-//	private static BufferedReader is = null;
 	private static InputStreamReader in = null;
 	private static FileList fileList;
 	public static Scanner scanner = new Scanner(System.in);
 	private static String list = "";
-	private static String fileName = "";
+	private static String listIP = "";
+	private static String fileName = null;
 	public static void InitSocket() {
-		System.out.println("Enter Port: ");
+		System.out.print("Enter IP address: ");
+		serverHost = scanner.nextLine();
+		System.out.print("Enter Port: ");
 		port = scanner.nextInt();
 		scanner.nextLine();
 		try {
 			socketOfClient = new Socket(serverHost, port);
+//			System.out.println("Show socket: "+socketOfClient.getLocalPort());
 			os = new BufferedWriter(new OutputStreamWriter(socketOfClient.getOutputStream(), "UTF-8"));
-//			is = new BufferedReader(new InputStreamReader(socketOfClient.getInputStream()));
 			in = new InputStreamReader(socketOfClient.getInputStream());
 		}	catch(UnknownHostException e) {
 			System.out.println(e);
@@ -66,13 +68,21 @@ public class MainClient {
 		BufferedReader br = new BufferedReader(in);
 		char[] msg = new char[bufferSize];
 		try {
-			rMsg = new String(msg, 0, br.read(msg, 0, 1024));
+			rMsg = new String(msg, 0, br.read(msg, 0, bufferSize));
 		}	catch(IOException e) {
 			e.printStackTrace();
 		}
 		return rMsg;
 	}
-	public static void FMenu() {
+	
+	public static void setListIPToClient(String _listIP) {
+		listIP = _listIP;
+	}
+	public static String getListIPToClient() {
+		return listIP;
+	}
+	public static boolean FMenu() {
+		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		Menu menu = new Menu();
 		menu.show();
@@ -88,6 +98,7 @@ public class MainClient {
 				break;
 			}
 			case 2: {		// download
+				String notFile = new String("QUIT");
 				os.write(menu.getSelectTypeString());
 				os.flush();
 				System.out.print("Enter file name: ");
@@ -95,27 +106,36 @@ public class MainClient {
 				fileName.concat("\0");
 				os.write(fileName);
 				os.flush();
-				scanner.close();
+				String rMsg = ReceicedMsg(listIP);
+				if(notFile.equals(rMsg)) {
+					System.out.println("The server has no file !!!");
+					return true;
+				}
+				setListIPToClient(rMsg);
+				System.out.println(getListIPToClient());
 				break;
 			}
 			case 3: {		// disconnect
-				
+				os.write(menu.getSelectTypeString());
+				os.flush();
+				System.out.println("Disconnected!!!");
+				socketOfClient.close();
+				return false;
 			}
 			}
 		}	catch(IOException e) {
 			e.printStackTrace();
 		}
+		return true;
 	}
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		InitSocket();
 		InitFileList();
-		SendMsg(GetFileList());
-		FMenu();
-//		list = ReceicedMsg(list);
-//		System.out.println("Received: "+list);
-//		while(true) {
-//			FMenu();
-//		}
+		boolean run = true;
+		while(run) {
+			SendMsg(GetFileList());
+			run = FMenu();
+		}
 	}
 }

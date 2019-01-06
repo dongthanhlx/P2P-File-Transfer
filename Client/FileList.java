@@ -4,7 +4,6 @@ import java.io.File;
 
 public class FileList {
 	private static int numFile;
-//	private static String source = "./src/Client";
 	String list = new String("");
 	public void setFileList() {
 		String workingDir = System.getProperty("user.dir");
@@ -12,9 +11,8 @@ public class FileList {
 		File[] file = fileList.listFiles();
 		numFile = file.length;
 		for (File index : file) {
-			list = list.concat(index.getName().concat("\n"));
+			list = list.concat(index.getName().concat(" "));
 		}
-		System.out.print(list);
 	}
 	
 	public String getFileList() {
